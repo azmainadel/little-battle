@@ -101,7 +101,7 @@ def display_prices():
         \n  Spearman (S) - 1W, 1F\
         \n  Archer (A) - 1W, 1G\
         \n  Knight (K) - 1F, 1G\
-        \n  Scout (T) - 1W, 1F, 1G"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          )
+        \n  Scout (T) - 1W, 1F, 1G"                                                                                                         )
 
 
 # Executes the given command
@@ -133,18 +133,21 @@ def near_homebase(x, y):
 
 # Checks if the army can be recruited
 def can_recruit(army):
-    res = player_1_resources if current_player == 1 else player_2_resources
+    if current_player == 1:
+        res = player_1_resources
+    elif current_player == 2:
+        res = player_2_resources
 
     if army == 'Spearman':
         if spearman_cost[0] > res[0] or spearman_cost[1] > res[1] or spearman_cost[2] > res[2]:
             return False
-    if army == 'Archer':
+    elif army == 'Archer':
         if archer_cost[0] > res[0] or archer_cost[1] > res[1] or archer_cost[2] > res[2]:
             return False
-    if army == 'Knight':
+    elif army == 'Knight':
         if knight_cost[0] > res[0] or knight_cost[1] > res[1] or knight_cost[2] > res[2]:
             return False
-    if army == 'Scout':
+    elif army == 'Scout':
         if scout_cost[0] > res[0] or scout_cost[1] > res[1] or scout_cost[2] > res[2]:
             return False
 
@@ -187,8 +190,6 @@ def decrease_resources(army):
             player_2_resources[1] -= scout_cost[1]
             player_2_resources[2] -= scout_cost[2]
 
-    return True
-
 
 # Validates army recruitment
 def handle_recruitment(user_input):
@@ -208,27 +209,33 @@ def handle_recruitment(user_input):
         while True:
             army_position = input("\nYou want to recruit a " + army +". Enter two integers as format ‘x y’ to place your army.\n")
 
-            army_position = army_position.split()
+            if execute_command(user_input) == False:
+                army_position = army_position.split()
 
-            if len(army_position) != 2:
-                print("Sorry, invalid input. Try again.")
-            else:
-                x = army_position[0]
-                y = army_position[1]
-
-                if type(int(x)) != int or type(int(y)) != int:
+                if len(army_position) != 2:
                     print("Sorry, invalid input. Try again.")
                 else:
-                    if near_homebase(int(x), int(y)) and game_map[int(x)][int(y)] == '  ':
-                        decrease_resources(army)
-                        game_map[int(x)][int(y)] = user_input + str(current_player)
-                        print("You has recruited a " + army)
+                    x = army_position[0]
+                    y = army_position[1]
 
-                        res = player_1_resources if current_player == 1 else player_2_resources
-                        print("\n[Your Asset: Wood - " + str(res[0]) + " Food - " + str(res[1]) + " Gold - " + str(res[2]) + "]")
-                        break
+                    if type(int(x)) != int or type(int(y)) != int:
+                        print("Sorry, invalid input. Try again.")
                     else:
-                        print("You must place your newly recruited unit in an unoccupied position next to your home base. Try again.")
+                        if near_homebase(int(x), int(y)) and game_map[int(x)][int(y)] == '  ':
+                            decrease_resources(army)
+
+                            game_map[int(x)][int(y)] = user_input + str(current_player) # K1
+                            print("You has recruited a " + army)
+
+                            if current_player == 1:
+                                res = player_1_resources
+                            elif current_player == 2:
+                                res = player_2_resources
+                                
+                            print("\n[Your Asset: Wood - " + str(res[0]) + " Food - " + str(res[1]) + " Gold - " + str(res[2]) + "]")
+                            break
+                        else:
+                            print("You must place your newly recruited unit in an unoccupied position next to your home base. Try again.")
 
 
 ############ CODING FLOW STARTS #############
@@ -274,7 +281,7 @@ for i in range(len(values)):
     current_value = values[i].split()
 
     for j in range(len(current_value)):
-        if type(int(j)) != int:
+        if type(int(current_value[j])) != int: # Wrong error
             raise(ValueError("Invalid Configuration File: {} contains non integer characters!".format(labels[i])))
 
     if len(current_value) % 2 != 0:
@@ -318,7 +325,11 @@ print("(enter PRIS to display the price list)\n")
 
 print("-Year " + str(year) + "-")
 print("\n+++Player " + str(current_player) + "'s Stage: Recruit Armies+++")
-res = player_1_resources if current_player == 1 else player_2_resources
+
+if current_player == 1:
+    res = player_1_resources
+elif current_player == 2:
+    res = player_2_resources
 print("\n[Your Asset: Wood - " + str(res[0]) + " Food - "+ str(res[1]) + " Gold - " + str(res[2]) + "]")
 
 ## Recruit army stage ##
