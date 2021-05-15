@@ -97,12 +97,7 @@ def display_map():
 
 # Prints the prices
 def display_prices():
-    print("Recruit Prices:\
-        \n  Spearman (S) - 1W, 1F\
-        \n  Archer (A) - 1W, 1G\
-        \n  Knight (K) - 1F, 1G\
-        \n  Scout (T) - 1W, 1F, 1G"                                                                                                         )
-
+    print("Recruit Prices:\n  Spearman (S) - 1W, 1F\n  Archer (A) - 1W, 1G\n  Knight (K) - 1F, 1G\n  Scout (T) - 1W, 1F, 1G")
 
 # Executes the given command
 def execute_command(input):
@@ -110,6 +105,8 @@ def execute_command(input):
         display_map()
     elif input == 'PRIS':
         display_prices()
+    elif input == 'QUIT':
+        exit()
     else:
         return False
 
