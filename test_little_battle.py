@@ -6,16 +6,10 @@ golds = []
 foods = []
 waters = []
 game_map = []
-
-current_player = 1
 year = 617
 
 #### IMPORTANT! ####
 # Resource array definition: [WOOD, FOOD, GOLD]/[W, F, G]
-
-player_1_resources = [1, 2, 3]
-player_2_resources = [1, 2, 3]
-
 spearman_cost = [1, 1, 0]
 archer_cost = [1, 0, 1]
 knight_cost = [0, 1, 1]
