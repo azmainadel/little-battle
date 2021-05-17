@@ -25,7 +25,7 @@ class Player:
         self.archers = []
         self.knights = []
         self.scouts = []
-        self.current_moves = []
+        self.current_moves = []  # to store the destination (x,y)s of the current
 
     def recruit(self, army, x, y):
         if army == 'Spearman':
@@ -57,8 +57,8 @@ class Player:
             return True
 
     def has_army_to_move(self):
-        if len(self.spearmen) > 0 or len(self.archers) > 0 or len(self.knights) > 0 or len(self.scouts) > 0:
-            if (len(self.spearmen) + len(self.archers) + len(self.knights) + len(self.scouts)) == len(self.current_moves):
+        if len(self.spearmen) > 0 or len(self.archers) > 0 or len(self.knights) > 0 or len(self.scouts) > 0: # if player has any army
+            if (len(self.spearmen) + len(self.archers) + len(self.knights) + len(self.scouts)) == len(self.current_moves): # all armies have been moved in this turn
                 return False
             else:
                 return True
@@ -88,8 +88,6 @@ class Player:
             print(*temp, sep=", ")
 
     def delete_army(self, x, y):
-        self.current_moves.remove((x, y))
-
         if (x, y) in self.spearmen:
             self.spearmen.remove((x, y))
         elif (x, y) in self.archers:
@@ -130,85 +128,64 @@ class Player:
         return True
 
     def move(self, army, x0, y0, x1, y1):
-        army_tag = army[0]
-        source = game_map[x0][y0]  # such as: '~~' or 'FF' or 'A2'
-        destination = game_map[x1][y1] # such as: 'K1' or 'FF' or 'A2'
+        if army != 'Scout':
+            army_tag = army[0]
+        else:
+            army_tag = 'T'
+
+        destination = game_map[x1][y1] # such as: 'WW' or 'FF' or 'A1' or 'H2'
 
         if destination[0] == 'H' and int(destination[1]) != self.id:
             print("The army "+army+" captured the enemy’s capital.\n")
             name = input("What’s your name, commander?\n")
             print("\n***Congratulation! Emperor "+name+" unified the country in "+str(year)+".***")
             exit()
-
         elif destination == '~~':
             self.delete_army(x0, y0)
-
             game_map[x0][y0] = '  '
-
             print("We lost the army " + army + " due to your command!")
             return False
-
         elif destination == '  ':
             self.update_army(x0, y0, x1, y1)
-
             game_map[x1][y1] = game_map[x0][y0]
             game_map[x0][y0] = '  '
-
         elif destination == 'WW':
             self.wood += 2
             self.update_army(x0, y0, x1, y1)
-
             game_map[x1][y1] = game_map[x0][y0]
             game_map[x0][y0] = '  '
-
             print("Good. We collected 2 Wood.")
-
         elif destination == 'FF':
             self.food += 2
             self.update_army(x0, y0, x1, y1)
-
             game_map[x1][y1] = game_map[x0][y0]
             game_map[x0][y0] = '  '
-
             print("Good. We collected 2 Food.")
-
         elif destination == 'GG':
             self.gold += 2
             self.update_army(x0, y0, x1, y1)
-
             game_map[x1][y1] = game_map[x0][y0]
             game_map[x0][y0] = '  '
-
             print("Good. We collected 2 Gold.")
-
         elif destination[0] != army_tag and int(destination[1]) != self.id: # For source like 'A1' and destination like 'K2'
-            if does_army_win(source[0], destination[0]):
+            if does_army_win(army_tag, destination[0]):
                 enemy = other_player.get_army_name(x1, y1)
-
                 other_player.delete_army(x1, y1)
                 self.update_army(x0, y0, x1, y1)
-
                 game_map[x1][y1] = game_map[x0][y0]
                 game_map[x0][y0] = '  '
-
                 print("Great! We defeated the enemy " + enemy + "!")
             else:
                 self.delete_army(x0, y0)
-
                 game_map[x0][y0] = '  '
-
                 print("We lost the army " + army + " due to your command!")
                 return False
-
         elif destination[0] == army_tag and int(destination[1]) != self.id:  # For source like 'A1' and destination like 'A2'
-            enemy = other_player.get_army_name(x1, y1)
             self.delete_army(x0, y0)
             other_player.delete_army(x1, y1)
-
             game_map[x0][y0] = '  '
             game_map[x1][y1] = '  '
-
-            print("We destroyed the enemy " + enemy + " with massive loss!")
+            print("We destroyed the enemy " + army + " with massive loss!")
             return False
 
         return True
@@ -369,7 +346,6 @@ def handle_recruitment(user_input):
 
     if current_player.can_recruit(army) == False:
         print("Insufficient resources. Please try again.")
-        return
     else:
         while True:
             army_position = input("\nYou want to recruit a " + army +". Enter two integers as format ‘x y’ to place your army.\n")
@@ -392,14 +368,14 @@ def handle_recruitment(user_input):
                             game_map[int(x)][int(y)] = user_input + str(current_player.id) # K1
                             print("You has recruited a " + army)
 
-                            print("\n[Your Asset: Wood - " + str(current_player.wood) + " Food - " + str(current_player.food) + " Gold - " + str(current_player.gold) + "]")
+                            print("\n[Your Asset: Wood - x" + str(current_player.wood) + " Food - x" + str(current_player.food) + " Gold - x" + str(current_player.gold) + "]")
                             break
                         else:
                             print("You must place your newly recruited unit in an unoccupied position next to your home base. Try again.")
 
 
 # Handles army movement
-def handle_move(user_input):
+def handle_move(user_input): # '1 2 2 3'
     user_input = user_input.split()
 
     if len(user_input) != 4:
@@ -413,35 +389,46 @@ def handle_move(user_input):
         if type(int(x0)) != int or type(int(y0)) != int or type(int(x1)) != int or type(int(y1)) != int:
             print("Invalid move. Try again.")
         else:
-            army = current_player.get_army_name(int(x0), int(y0))
-
-            if army != 'Scout':
-                if abs(int(x1) - int(x0)) > 1 or abs(int(y1) - int(y0)) > 1:
-                    print("Invalid move. Try again.")
-                else:
-                    print("\nYou have moved " + army + " from " + str((int(x0), int(y0))) + " to " + str((int(x1), int(y1))) + ".")
-                    current_player.move(army, int(x0), int(y0), int(x1), int(y1))
-                    current_player.current_moves.append((int(x1), int(y1)))
+            if (int(x1) > width or int(y1) > height) or ((int(x0), int(y0)) == (int(x1), int(y1))):
+                print("Invalid move. Try again.")
             else:
-                if abs(int(x1) - int(x0)) > 2 or abs(int(y1) - int(y0)) > 2:
+                source = game_map[int(x0)][int(y0)]
+                destination = game_map[int(x1)][int(y1)]
+
+                if source[1] == destination[1]: # source='A1' destination 'H1'/'K1'
                     print("Invalid move. Try again.")
                 else:
-                    print("\nYou have moved " + army + " from " + str((int(x0), int(y0))) + " to " + str((int(x1), int(y1))) + ".")
-                    if int(x1)-int(x0) == 2:
-                        if current_player.move(army, int(x0), int(y0), int(x0)+1, int(y1)):
-                            current_player.move(army, int(x0)+1, int(y0), int(x1), int(y1))
-                    elif int(x1) - int(x0) == -2:
-                        if current_player.move(army, int(x0), int(y0), int(x0)-1, int(y1)):
-                            current_player.move(army, int(x0)-1, int(y0), int(x1), int(y1))
-                    elif int(y1) - int(y0) == 2:
-                        if current_player.move(army, int(x0), int(y0), int(x1), int(y0)+1):
-                            current_player.move(army, int(x0), int(y0)+1, int(x1), int(y1))
-                    elif int(y1) - int(y0) == -2:
-                        if current_player.move(army, int(x0), int(y0), int(x1), int(y0)-1):
-                            current_player.move(army, int(x0), int(y0)-1, int(x1), int(y1))
+                    army = current_player.get_army_name(int(x0), int(y0))
+
+                    if army != 'Scout':
+                        if abs(int(x1) - int(x0)) > 1 or abs(int(y1) - int(y0)) > 1:
+                            print("Invalid move. Try again.")
+                        else:
+                            print("\nYou have moved " + army + " from " + str((int(x0), int(y0))) + " to " + str((int(x1), int(y1))) + ".")
+                            current_player.move(army, int(x0), int(y0), int(x1), int(y1))
+                            current_player.current_moves.append((int(x1), int(y1)))
                     else:
-                        current_player.move(army, int(x0), int(y0), int(x1), int(y1))
-                    current_player.current_moves.append((int(x1), int(y1)))
+                        if abs(int(x1) - int(x0)) > 2 or abs(int(y1) - int(y0)) > 2:
+                            print("Invalid move. Try again.")
+                        else:
+                            print("\nYou have moved " + army + " from " + str((int(x0), int(y0))) + " to " + str((int(x1), int(y1))) + ".")
+
+                            if int(x1)-int(x0) == 2:
+                                if current_player.move(army, int(x0), int(y0), int(x0)+1, int(y1)):
+                                    current_player.move(army, int(x0)+1, int(y0), int(x1), int(y1))
+                            elif int(x1) - int(x0) == -2:
+                                if current_player.move(army, int(x0), int(y0), int(x0)-1, int(y1)):
+                                    current_player.move(army, int(x0)-1, int(y0), int(x1), int(y1))
+                            elif int(y1) - int(y0) == 2:
+                                if current_player.move(army, int(x0), int(y0), int(x1), int(y0)+1):
+                                    current_player.move(army, int(x0), int(y0)+1, int(x1), int(y1))
+                            elif int(y1) - int(y0) == -2:
+                                if current_player.move(army, int(x0), int(y0), int(x1), int(y0)-1):
+                                    current_player.move(army, int(x0), int(y0)-1, int(x1), int(y1))
+                            else: # x diff is 1 and y diff is 1 (move like S/A/K)
+                                current_player.move(army, int(x0), int(y0), int(x1), int(y1))
+
+                            current_player.current_moves.append((int(x1), int(y1)))
 
 
 
@@ -537,10 +524,11 @@ print("(enter PRIS to display the price list)")
 
 while True:
     print("\n-Year " + str(year) + "-")
-    print("\n+++Player " + str(current_player.id) + "'s Stage: Recruit Armies+++")
-    print("\n[Your Asset: Wood - " + str(current_player.wood) + " Food - "+ str(current_player.food) + " Gold - " + str(current_player.gold) + "]")
 
     ## Recruit army stage ##
+    print("\n+++Player " + str(current_player.id) + "'s Stage: Recruit Armies+++")
+    print("\n[Your Asset: Wood - x" + str(current_player.wood) + " Food - x"+ str(current_player.food) + " Gold - x" + str(current_player.gold) + "]")
+
     while True:
         if current_player.has_min_resources() == False:
             print("No resources to recruit any armies.")
